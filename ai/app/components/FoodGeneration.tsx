@@ -15,6 +15,46 @@ export const FoodGeneration = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
+  // const generateImageAndExtract = async () => {
+  //   if (!prompt.trim()) {
+  //     setError("Please enter a prompt first");
+  //     return;
+  //   }
+
+  //   setIsLoading(true);
+  //   setError(null);
+  //   setResultImage(null);
+  //   setExtractedInfo([]);
+
+  //   try {
+  //     const imageRes = await fetch("/api/generate-image", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({ prompt }),
+  //     });
+
+  //     const imageData = await imageRes.json();
+
+  //     if (!imageData.url) throw new Error(imageData.error);
+  //     setResultImage(imageData.url);
+
+  //     const extractRes = await fetch("/api/extract", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({ imageUrl: imageData.url }),
+  //     });
+
+  //     const extractData = await extractRes.json();
+
+  //     setExtractedInfo(extractData.ingredients);
+  //   } catch (error) {
+  //     console.error("Error:", error);
+  //     setError("Зураг үүсгэхэд алдаа гарлаа.");
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
   const generateImageAndExtract = async () => {
     if (!prompt.trim()) {
       setError("Please enter a prompt first");
@@ -27,39 +67,42 @@ export const FoodGeneration = () => {
     setExtractedInfo([]);
 
     try {
-      const res = await fetch("/api/food", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt }),
-      });
+       const [imageResponse, extractResponse] = await Promise.all([
+        fetch("/api/generate-image", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt }),
+        }),
+        fetch("/api/extract", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt }),
+        }),
+      ]);
 
-      if (!res.ok) {
-        throw new Error("Failed request");
+      const imageData = await imageResponse.json();
+      const extractData = await extractResponse.json();
+
+      if (imageData.url) {
+        setResultImage(imageData.url);
+      } else {
+        console.error("Image error:", imageData.error);
       }
 
-      const data = await res.json();
+      if (extractData.ingredients) {
+        setExtractedInfo(extractData.ingredients);
+      }
 
-      // Image
-      setResultImage(data.image);
-
-      // Extracted ingredients → badge болгож харуулах
-      const items = data.ingredients
-        .split(",")
-        .map((item: string, index: number) => (
-          <Badge key={index} variant="secondary">
-            {item.trim()}
-          </Badge>
-        ));
-
-      setExtractedInfo(items);
-    } catch (error) {
+      if (!imageData.url && !extractData.ingredients) {
+        throw new Error("Both services failed");
+      }
+    } catch (error: any) {
       console.error("Error:", error);
-      setError("Something went wrong. Please try again.");
+      setError(error.message || "Зураг үүсгэхэд алдаа гарлаа.");
     } finally {
       setIsLoading(false);
     }
   };
-
   return (
     <main className="container max-w-3xl p-4 mx-auto">
       <h1 className="mb-6 text-2xl font-bold">AI Food Creator</h1>

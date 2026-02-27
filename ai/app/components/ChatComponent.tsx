@@ -52,18 +52,21 @@ export const ChatComponent = () => {
     setIsLoading(true);
 
     try {
-      const res = await fetch("/api/chat", {
+    const response = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: updatedMessages }),
+        body: JSON.stringify({ prompt: userMessage }),
       });
+      const result = await response.json();
 
-      const data = await res.json();
-
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: data.content },
-      ]);
+      if (result.output) {
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: result.output },
+        ]);
+      } else {
+        throw new Error(result.error || "No response");
+      }
+ 
     } catch (err) {
       console.error("OpenAI API Error:", err);
       setMessages((prev) => [
