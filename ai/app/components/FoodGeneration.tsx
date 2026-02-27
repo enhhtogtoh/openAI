@@ -15,46 +15,6 @@ export const FoodGeneration = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // const generateImageAndExtract = async () => {
-  //   if (!prompt.trim()) {
-  //     setError("Please enter a prompt first");
-  //     return;
-  //   }
-
-  //   setIsLoading(true);
-  //   setError(null);
-  //   setResultImage(null);
-  //   setExtractedInfo([]);
-
-  //   try {
-  //     const imageRes = await fetch("/api/generate-image", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({ prompt }),
-  //     });
-
-  //     const imageData = await imageRes.json();
-
-  //     if (!imageData.url) throw new Error(imageData.error);
-  //     setResultImage(imageData.url);
-
-  //     const extractRes = await fetch("/api/extract", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({ imageUrl: imageData.url }),
-  //     });
-
-  //     const extractData = await extractRes.json();
-
-  //     setExtractedInfo(extractData.ingredients);
-  //   } catch (error) {
-  //     console.error("Error:", error);
-  //     setError("Зураг үүсгэхэд алдаа гарлаа.");
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
-
   const generateImageAndExtract = async () => {
     if (!prompt.trim()) {
       setError("Please enter a prompt first");
@@ -67,7 +27,7 @@ export const FoodGeneration = () => {
     setExtractedInfo([]);
 
     try {
-       const [imageResponse, extractResponse] = await Promise.all([
+      const [imageResponse, extractResponse] = await Promise.all([
         fetch("/api/generate-image", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
